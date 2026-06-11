@@ -3,66 +3,70 @@
 // calculator.js
 // Supports operations: addition (+), subtraction (-), multiplication (*), division (/)
 
-const args = process.argv.slice(2);
+// Exported functions for unit testing and programmatic use:
+// - add(a, b)
+// - subtract(a, b)
+// - multiply(a, b)
+// - divide(a, b)
+// - calculate(a, operator, b)
 
-function usage() {
-  console.log('Usage: node src/calculator.js <number> <operator> <number>');
-  console.log('Operators: +  -  *  /  or words: add sub mul div');
+function toNumber(n) {
+  const x = Number(n);
+  if (!isFinite(x)) throw new Error('Invalid number');
+  return x;
 }
 
-if (args.length !== 3) {
-  usage();
-  process.exit(0);
+function add(a, b) {
+  return a + b;
 }
 
-const [lhsRaw, opRaw, rhsRaw] = args;
-const a = Number(lhsRaw);
-const b = Number(rhsRaw);
-const op = opRaw.trim();
-
-if (!isFinite(a) || !isFinite(b)) {
-  console.error('Error: both operands must be valid numbers');
-  process.exit(1);
+function subtract(a, b) {
+  return a - b;
 }
 
-let result;
+function multiply(a, b) {
+  return a * b;
+}
 
-// Addition
-if (op === '+' || op.toLowerCase() === 'add' || op === 'plus') {
-  result = a + b;
+function divide(a, b) {
+  if (b === 0) throw new Error('Division by zero');
+  return a / b;
 }
-// Subtraction
-else if (op === '-' || op.toLowerCase() === 'sub' || op === 'minus') {
-  result = a - b;
+
+function calculate(lhs, op, rhs) {
+  const a = toNumber(lhs);
+  const b = toNumber(rhs);
+  const o = String(op).trim().toLowerCase();
+
+  if (o === '+' || o === 'add' || o === 'plus') return add(a, b);
+  if (o === '-' || o === 'sub' || o === 'minus') return subtract(a, b);
+  if (o === '*' || o === 'mul' || o === 'x') return multiply(a, b);
+  if (o === '/' || o === 'div') return divide(a, b);
+
+  throw new Error(`Unsupported operator "${op}"`);
 }
-// Multiplication
-else if (op === '*' || op.toLowerCase() === 'mul' || op === 'x' || op === 'X') {
-  result = a * b;
-}
-// Division
-else if (op === '/' || op.toLowerCase() === 'div') {
-  if (b === 0) {
-    console.error('Error: division by zero');
+
+module.exports = { add, subtract, multiply, divide, calculate };
+
+// CLI behavior when run directly
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  function usage() {
+    console.log('Usage: node src/calculator.js <number> <operator> <number>');
+    console.log('Operators: +  -  *  /  or words: add sub mul div');
+  }
+
+  if (args.length !== 3) {
+    usage();
+    process.exit(0);
+  }
+
+  try {
+    const result = calculate(args[0], args[1], args[2]);
+    console.log(result);
+    process.exit(0);
+  } catch (err) {
+    console.error('Error:', err.message);
     process.exit(1);
   }
-  result = a / b;
-}
-else {
-  console.error(`Error: unsupported operator "${op}"`);
-  usage();
-  process.exit(1);
-}
-
-// Print numeric result
-if (Number.isFinite(result)) {
-  // Trim trailing .0 for integers for nicer output
-  if (Number.isInteger(result)) {
-    console.log(result);
-  } else {
-    console.log(result);
-  }
-  process.exit(0);
-} else {
-  console.error('Computation resulted in a non-numeric value');
-  process.exit(1);
 }
